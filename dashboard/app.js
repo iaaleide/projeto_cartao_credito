@@ -84,6 +84,8 @@ const els = {
   activeFilterLabel: document.getElementById("activeFilterLabel"),
   clearFilterBtn: document.getElementById("clearFilterBtn"),
   clearAllFiltersBtn: document.getElementById("clearAllFiltersBtn"),
+  logoutBtn: document.getElementById("logoutBtn"),
+  sessionUserLabel: document.getElementById("sessionUserLabel"),
   activeFilterChip: document.getElementById("activeFilterChip"),
   tableBody: document.getElementById("tableBody"),
   tableSubtitle: document.getElementById("tableSubtitle"),
@@ -679,6 +681,20 @@ if (themeToggle) {
 els.clearFilterBtn.addEventListener("click", clearFilter);
 els.clearAllFiltersBtn.addEventListener("click", clearAllFilters);
 els.activeFilterChip.addEventListener("click", clearFilter);
+
+if (typeof DashboardAuth !== "undefined") {
+  const u = DashboardAuth.currentUser();
+  if (els.sessionUserLabel && u) {
+    els.sessionUserLabel.textContent = u;
+    els.sessionUserLabel.title = `Conectado como ${u}`;
+  }
+  if (els.logoutBtn) {
+    els.logoutBtn.addEventListener("click", () => {
+      DashboardAuth.logout();
+      window.location.href = "login.html";
+    });
+  }
+}
 
 els.searchInput.addEventListener("input", () => {
   searchQuery = els.searchInput.value;

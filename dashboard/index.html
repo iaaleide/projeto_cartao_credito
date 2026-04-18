@@ -23,6 +23,14 @@
         }
       })();
     </script>
+    <script src="auth.js"></script>
+    <script>
+      (function () {
+        if (typeof DashboardAuth === "undefined" || !DashboardAuth.isAuthenticated()) {
+          window.location.replace("login.html");
+        }
+      })();
+    </script>
   </head>
   <body class="theme-arara">
     <div class="app-bg" aria-hidden="true"></div>
@@ -43,6 +51,10 @@
       </div>
       <div class="header__actions">
         <div class="header__toolbar">
+          <span class="session-pill" id="sessionUserLabel" title=""></span>
+          <button type="button" class="btn btn--ghost" id="logoutBtn" aria-label="Sair da conta" title="Sair">
+            Sair
+          </button>
           <button
             type="button"
             class="btn btn--soft"

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acesso — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("dashboard-theme");
+          if (t !== "dark" && t !== "light") t = "light";
+          document.documentElement.dataset.theme = t;
+          document.documentElement.style.colorScheme = t === "dark" ? "dark" : "light";
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <script src="auth.js"></script>
+  </head>
+  <body class="theme-arara auth-body">
+    <div class="app-bg" aria-hidden="true"></div>
+    <div class="blobs" aria-hidden="true">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
+    </div>
+    <div class="noise" aria-hidden="true"></div>
+
+    <main class="auth-shell">
+      <div class="auth-card card">
+        <p class="eyebrow">Área restrita</p>
+        <h1 class="auth-card__title" id="authTitle">Entrar</h1>
+        <p class="auth-card__subtitle" id="authSubtitle"></p>
+
+        <div class="auth-msg" id="authError" role="alert" hidden></div>
+
+        <section id="registerPanel" class="auth-panel" hidden>
+          <form id="registerForm" class="auth-form" autocomplete="off">
+            <label class="auth-label" for="regUser">Usuário</label>
+            <input id="regUser" class="input" name="username" type="text" required minlength="3" maxlength="64" />
+
+            <label class="auth-label" for="regPass">Senha</label>
+            <input id="regPass" class="input" name="password" type="password" required minlength="8" maxlength="128" />
+
+            <label class="auth-label" for="regPass2">Confirmar senha</label>
+            <input id="regPass2" class="input" name="password2" type="password" required minlength="8" maxlength="128" />
+
+            <button type="submit" class="btn btn--primary auth-submit">Criar acesso e entrar</button>
+          </form>
+        </section>
+
+        <section id="loginPanel" class="auth-panel" hidden>
+          <form id="loginForm" class="auth-form" autocomplete="username">
+            <label class="auth-label" for="logUser">Usuário</label>
+            <input id="logUser" class="input" name="username" type="text" required maxlength="64" autocomplete="username" />
+
+            <label class="auth-label" for="logPass">Senha</label>
+            <input id="logPass" class="input" name="password" type="password" required maxlength="128" autocomplete="current-password" />
+
+            <button type="submit" class="btn btn--primary auth-submit">Entrar</button>
+          </form>
+        </section>
+
+        <p class="auth-footnote">
+          Demonstração no navegador: credenciais ficam neste aparelho (localStorage). Em produção, valide no servidor com HTTPS.
+        </p>
+      </div>
+    </main>
+
+    <script src="login.js"></script>
+  </body>
+</html>
