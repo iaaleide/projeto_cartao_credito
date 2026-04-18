@@ -373,6 +373,20 @@ h1 {
   transform: translateY(-1px);
 }
 
+.btn--soft {
+  background: var(--surface);
+  color: var(--text-soft);
+  border-color: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--soft:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
 .grid {
   max-width: 1180px;
   margin: 0 auto;
@@ -897,6 +911,12 @@ html[data-theme="dark"] .btn--ghost {
 html[data-theme="dark"] .btn--ghost:hover {
   border-color: var(--line-strong);
   color: var(--text);
+}
+
+html[data-theme="dark"] .btn--soft {
+  background: var(--surface);
+  color: var(--text-soft);
+  border-color: var(--line);
 }
 
 html[data-theme="dark"] .card::before {

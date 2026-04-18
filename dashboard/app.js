@@ -83,6 +83,7 @@ const els = {
   filterBar: document.getElementById("filterBar"),
   activeFilterLabel: document.getElementById("activeFilterLabel"),
   clearFilterBtn: document.getElementById("clearFilterBtn"),
+  clearAllFiltersBtn: document.getElementById("clearAllFiltersBtn"),
   activeFilterChip: document.getElementById("activeFilterChip"),
   tableBody: document.getElementById("tableBody"),
   tableSubtitle: document.getElementById("tableSubtitle"),
@@ -255,6 +256,17 @@ function setFilter(category) {
 
 function clearFilter() {
   activeCategory = null;
+  syncFilterUi();
+  renderTable();
+  updateKpis(getFilteredTransactions());
+  updateCharts();
+}
+
+function clearAllFilters() {
+  activeCategory = null;
+  monthFilterKey = null;
+  searchQuery = "";
+  els.searchInput.value = "";
   syncFilterUi();
   renderTable();
   updateKpis(getFilteredTransactions());
@@ -665,6 +677,7 @@ if (themeToggle) {
 }
 
 els.clearFilterBtn.addEventListener("click", clearFilter);
+els.clearAllFiltersBtn.addEventListener("click", clearAllFilters);
 els.activeFilterChip.addEventListener("click", clearFilter);
 
 els.searchInput.addEventListener("input", () => {
@@ -675,8 +688,7 @@ els.searchInput.addEventListener("input", () => {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    monthFilterKey = null;
-    clearFilter();
+    clearAllFilters();
   }
 });
 
