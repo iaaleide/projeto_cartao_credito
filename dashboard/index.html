@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Cartão de Crédito</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("dashboard-theme");
+          if (t !== "dark" && t !== "light") t = "light";
+          document.documentElement.dataset.theme = t;
+          document.documentElement.style.colorScheme = t === "dark" ? "dark" : "light";
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+  </head>
+  <body class="theme-arara">
+    <div class="app-bg" aria-hidden="true"></div>
+    <div class="blobs" aria-hidden="true">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
+    </div>
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="header">
+      <div class="header__text">
+        <p class="eyebrow">Visão consolidada</p>
+        <h1>Dashboard de gastos</h1>
+        <p class="lede">
+          Clique em qualquer segmento do gráfico de rosca ou nas barras dos top 5 para filtrar as transações — como no Power BI, com feedback visual imediato.
+        </p>
+      </div>
+      <div class="header__actions">
+        <div class="header__toolbar">
+          <button
+            type="button"
+            class="theme-toggle"
+            id="themeToggle"
+            aria-pressed="false"
+            aria-label="Alternar entre tema claro e escuro"
+            title="Tema claro ou escuro"
+          >
+            <span class="theme-toggle__icons" aria-hidden="true">
+              <svg class="theme-toggle__svg theme-toggle__svg--sun" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2" />
+                <path
+                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <svg class="theme-toggle__svg theme-toggle__svg--moon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M21 14.5A8.5 8.5 0 0110.5 4 8.5 8.5 0 0012 21a8.5 8.5 0 009-6.5z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </button>
+          <div class="filter-bar" id="filterBar" hidden>
+            <span class="filter-bar__label">Filtro ativo</span>
+            <button type="button" class="chip chip--accent" id="activeFilterChip">
+              <span id="activeFilterLabel"></span>
+            </button>
+            <button type="button" class="btn btn--ghost" id="clearFilterBtn">Limpar filtro</button>
+          </div>
+        </div>
+      </div>
+      <div class="header__visual" aria-hidden="true">
+        <div class="feather-stack">
+          <span class="feather feather--a"></span>
+          <span class="feather feather--b"></span>
+          <span class="feather feather--c"></span>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="kpi" aria-label="Indicadores principais">
+        <article class="card card--kpi kpi-item" style="--delay: 0ms">
+          <p class="card__label">Total da fatura</p>
+          <p class="card__value" id="kpiTotal">R$ 0,00</p>
+          <p class="card__hint" id="kpiTotalHint">Período filtrado</p>
+        </article>
+        <article class="card card--kpi kpi-item" style="--delay: 60ms">
+          <p class="card__label">Lançamentos</p>
+          <p class="card__value" id="kpiCount">0</p>
+          <p class="card__hint">Transações no recorte</p>
+        </article>
+        <article class="card card--kpi kpi-item" style="--delay: 120ms">
+          <p class="card__label">Ticket médio</p>
+          <p class="card__value" id="kpiTicket">R$ 0,00</p>
+          <p class="card__hint">Valor médio por lançamento</p>
+        </article>
+        <article class="card card--kpi kpi-item" style="--delay: 180ms">
+          <p class="card__label">Parcelado no período</p>
+          <p class="card__value" id="kpiParcelado">R$ 0,00</p>
+          <p class="card__hint">Soma das parcelas (mock)</p>
+        </article>
+      </section>
+
+      <section class="charts-row">
+        <article class="card card--chart chart-rise" style="--delay: 220ms">
+          <div class="card__head">
+            <h2>Categorias</h2>
+            <p class="card__sub">Distribuição — clique para filtrar</p>
+          </div>
+          <div class="chart-wrap chart-wrap--donut">
+            <canvas id="chartDonut" role="img" aria-label="Gráfico de rosca por categoria"></canvas>
+          </div>
+        </article>
+        <article class="card card--chart chart-rise" style="--delay: 280ms">
+          <div class="card__head">
+            <h2>Top 5 categorias</h2>
+            <p class="card__sub">Comparativo horizontal — clique na barra</p>
+          </div>
+          <div class="chart-wrap chart-wrap--hbar">
+            <canvas id="chartHBar" role="img" aria-label="Gráfico de barras horizontais top 5"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <section class="charts-row charts-row--triple">
+        <article class="card card--chart chart-rise" style="--delay: 340ms">
+          <div class="card__head">
+            <h2>Últimas 6 faturas</h2>
+            <p class="card__sub">Evolução mensal (valores mockados)</p>
+          </div>
+          <div class="chart-wrap chart-wrap--line">
+            <canvas id="chartLine" role="img" aria-label="Gráfico de linha das faturas"></canvas>
+          </div>
+        </article>
+        <article class="card card--chart chart-rise" style="--delay: 400ms">
+          <div class="card__head">
+            <h2>Parcelas no tempo</h2>
+            <p class="card__sub">Linha do tempo mês a mês</p>
+          </div>
+          <div class="timeline" id="timeline" aria-label="Timeline de valores parcelados"></div>
+        </article>
+      </section>
+
+      <section class="card card--table chart-rise" style="--delay: 460ms">
+        <div class="card__head card__head--row">
+          <div>
+            <h2>Transações</h2>
+            <p class="card__sub" id="tableSubtitle">20 lançamentos mockados</p>
+          </div>
+          <div class="table-tools">
+            <label class="sr-only" for="searchInput">Buscar na tabela</label>
+            <input
+              id="searchInput"
+              class="input"
+              type="search"
+              placeholder="Buscar descrição ou categoria…"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Data</th>
+                <th scope="col">Descrição</th>
+                <th scope="col">Categoria</th>
+                <th scope="col" class="num">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Dados ilustrativos para demonstração de UI. Integração com backend pode substituir os mocks sem alterar o layout.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
