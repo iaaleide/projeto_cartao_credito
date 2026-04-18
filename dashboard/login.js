@@ -36,7 +36,8 @@
       registerPanel.hidden = true;
       loginPanel.hidden = false;
       authTitle.textContent = "Entrar";
-      authSubtitle.textContent = "Use o usuário e a senha cadastrados neste dispositivo.";
+      authSubtitle.textContent =
+        "Use o usuário e a senha cadastrados neste dispositivo. Administradores podem criar novos acessos em Usuários, no dashboard.";
     } else {
       registerPanel.hidden = false;
       loginPanel.hidden = true;

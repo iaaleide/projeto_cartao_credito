@@ -1,65 +1,38 @@
 /**
- * Dashboard demo — dados mockados (últimos 6 meses + 20 lançamentos).
- * Filtro por categoria ao clicar na rosca ou nas barras (estilo Power BI).
+ * Dashboard alimentado por CSV.
+ * Filtro por categoria ao clicar na rosca ou nas barras.
  */
 
-/** Pastéis inspirados em penas de arara + folhagem (natureza) */
 const PALETTE = {
   Alimentação: "#b8f0d8",
   Transporte: "#c9d4ff",
   Moradia: "#ffe9b8",
+  "Casa e Reforma": "#ffe9b8",
   Lazer: "#ffd0dc",
   Saúde: "#b8e8ff",
+  Farmácia: "#b8e8ff",
   Educação: "#e4ddff",
+  Livros: "#e4ddff",
   Assinaturas: "#fff3bf",
-  "Compras online": "#ffd8e8",
+  "Compras Online": "#ffd8e8",
+  "Móveis e Decoração": "#ffe4cf",
+  Supermercado: "#c9f2cb",
+  Beleza: "#ffd4d1",
+  Viagens: "#bfe8ff",
+  Vestuário: "#d9d1ff",
+  Pet: "#f7d8b5",
+  Combustível: "#ffe0a8",
+  "Contas e Utilidades": "#d4f4ee",
+  Transferências: "#d8e2ea",
   Outros: "#d8e2ea",
 };
 
 const MONTHS_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const CSV_URL = "./fatura_categorizada.csv";
 
-/** Últimos 6 meses (rótulo curto + chave YYYY-MM) — referência: Abr/2026 */
-const FATURAS_6_MESES = [
-  { key: "2025-11", label: "Nov/25", total: 4280.4 },
-  { key: "2025-12", label: "Dez/25", total: 5122.9 },
-  { key: "2026-01", label: "Jan/26", total: 3890.15 },
-  { key: "2026-02", label: "Fev/26", total: 4765.5 },
-  { key: "2026-03", label: "Mar/26", total: 4410.0 },
-  { key: "2026-04", label: "Abr/26", total: 4688.75 },
-];
-
-/** Soma de parcelas comprometidas por mês (mock) */
-const PARCELAS_MENSAL = [
-  { key: "2025-11", label: "Nov/25", valor: 820.0 },
-  { key: "2025-12", label: "Dez/25", valor: 940.5 },
-  { key: "2026-01", label: "Jan/26", valor: 1105.2 },
-  { key: "2026-02", label: "Fev/26", valor: 980.0 },
-  { key: "2026-03", label: "Mar/26", valor: 1240.75 },
-  { key: "2026-04", label: "Abr/26", valor: 1188.3 },
-];
-
-const TRANSACOES = [
-  { data: "2026-04-14", descricao: "Supermercado Semanal", categoria: "Alimentação", valor: 312.45 },
-  { data: "2026-04-12", descricao: "Uber / corridas", categoria: "Transporte", valor: 86.2 },
-  { data: "2026-04-10", descricao: "Farmácia central", categoria: "Saúde", valor: 124.9 },
-  { data: "2026-04-08", descricao: "Streaming + música", categoria: "Assinaturas", valor: 59.9 },
-  { data: "2026-04-05", descricao: "Restaurante (jantar)", categoria: "Alimentação", valor: 178.0 },
-  { data: "2026-04-03", descricao: "Parcela notebook 4/10", categoria: "Compras online", valor: 249.9 },
-  { data: "2026-04-01", descricao: "Condomínio", categoria: "Moradia", valor: 620.0 },
-  { data: "2026-03-28", descricao: "Academia", categoria: "Saúde", valor: 99.9 },
-  { data: "2026-03-22", descricao: "Cinema + pipoca", categoria: "Lazer", valor: 72.0 },
-  { data: "2026-03-18", descricao: "Curso online (parcela)", categoria: "Educação", valor: 149.5 },
-  { data: "2026-03-15", descricao: "Combustível", categoria: "Transporte", valor: 260.0 },
-  { data: "2026-03-10", descricao: "E-commerce — roupas", categoria: "Compras online", valor: 189.9 },
-  { data: "2026-03-06", descricao: "Padaria / café", categoria: "Alimentação", valor: 42.3 },
-  { data: "2026-03-02", descricao: "Plano móvel", categoria: "Assinaturas", valor: 89.99 },
-  { data: "2026-02-26", descricao: "Manutenção hidráulica", categoria: "Moradia", valor: 350.0 },
-  { data: "2026-02-20", descricao: "Show ingressos", categoria: "Lazer", valor: 220.0 },
-  { data: "2026-02-14", descricao: "Mercado delivery", categoria: "Alimentação", valor: 267.8 },
-  { data: "2026-02-09", descricao: "Transporte público + app", categoria: "Transporte", valor: 118.4 },
-  { data: "2026-02-04", descricao: "Consulta particular", categoria: "Saúde", valor: 280.0 },
-  { data: "2026-01-30", descricao: "Livros técnicos", categoria: "Educação", valor: 156.0 },
-];
+let TRANSACOES = [];
+let FATURAS_6_MESES = [];
+let PARCELAS_MENSAL = [];
 
 const fmtBRL = (n) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
@@ -73,6 +46,7 @@ const monthKeyFromIso = (iso) => iso.slice(0, 7);
 
 let activeCategory = null;
 let searchQuery = "";
+let monthFilterKey = null;
 
 const els = {
   kpiTotal: document.getElementById("kpiTotal"),
@@ -95,6 +69,241 @@ const els = {
 
 const CHART_FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
 const THEME_KEY = "dashboard-theme";
+
+function normalizeCategory(cat) {
+  if (!cat) return "Outros";
+  const map = {
+    "Compras online": "Compras Online",
+    "compras online": "Compras Online",
+  };
+  return map[cat.trim()] || cat.trim();
+}
+
+function splitCsvLine(line, delimiter = ",") {
+  const cols = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === delimiter && !inQuotes) {
+      cols.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  cols.push(cur);
+  return cols.map((x) => x.trim());
+}
+
+function detectDelimiter(headerLine) {
+  const commas = (headerLine.match(/,/g) || []).length;
+  const semis = (headerLine.match(/;/g) || []).length;
+  return semis > commas ? ";" : ",";
+}
+
+function normHeaderCell(s) {
+  return String(s)
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function findColIndex(headerNorm, ...names) {
+  for (const n of names) {
+    const want = normHeaderCell(n);
+    const i = headerNorm.indexOf(want);
+    if (i !== -1) return i;
+  }
+  return -1;
+}
+
+function parseDateFlexible(value) {
+  const s = String(value).replace(/"/g, "").trim();
+  if (!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const [d, m, y] = s.split("/");
+  if (!d || !m || !y) return null;
+  return `${y.padStart(4, "0")}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+}
+
+function parseMoneyBR(value) {
+  let s = String(value).replace(/"/g, "").trim();
+  if (!s) return 0;
+  if (s.includes(",") && s.includes(".")) {
+    s = s.replace(/\./g, "").replace(",", ".");
+  } else if (s.includes(",")) {
+    s = s.replace(",", ".");
+  }
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function labelFromMonthKey(key) {
+  const [y, m] = key.split("-").map(Number);
+  return `${MONTHS_PT[m - 1]}/${String(y).slice(-2)}`;
+}
+
+function aggregateMonthlyTotals(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const key = monthKeyFromIso(row.data);
+    map.set(key, (map.get(key) || 0) + row.valor);
+  }
+  return [...map.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, total]) => ({ key, label: labelFromMonthKey(key), total }));
+}
+
+function deriveTimeline(months) {
+  return months.map((m) => ({ key: m.key, label: m.label, valor: m.total }));
+}
+
+function parseCsvText(text) {
+  const raw = String(text).replace(/^\uFEFF/, "");
+  const lines = raw
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  if (lines.length < 2) {
+    throw new Error("O arquivo CSV está vazio ou só tem o cabeçalho.");
+  }
+
+  const delim = detectDelimiter(lines[0]);
+  const headerCells = splitCsvLine(lines[0], delim);
+  const headerNorm = headerCells.map(normHeaderCell);
+
+  const idxData = findColIndex(headerNorm, "data", "date");
+  const idxValor = findColIndex(headerNorm, "valor", "value", "amount");
+  const idxDescricao = findColIndex(headerNorm, "descricao", "descrição", "description");
+  const idxCategoria = findColIndex(headerNorm, "categoria", "category");
+
+  if ([idxData, idxValor, idxDescricao, idxCategoria].some((x) => x === -1)) {
+    throw new Error(
+      "O CSV precisa ter as colunas: data, valor, descricao (ou descrição), categoria. Delimitador vírgula ou ponto e vírgula."
+    );
+  }
+
+  const rows = lines
+    .slice(1)
+    .map((line) => splitCsvLine(line, delim))
+    .map((cols) => ({
+      data: parseDateFlexible(cols[idxData]),
+      valor: parseMoneyBR(cols[idxValor]),
+      descricao: cols[idxDescricao] || "Sem descrição",
+      categoria: normalizeCategory(cols[idxCategoria]),
+    }))
+    .filter((row) => row.data && row.categoria);
+
+  if (!rows.length) {
+    throw new Error("Nenhuma linha válida após ler o CSV (confira formato de data e categorias).");
+  }
+
+  return rows;
+}
+
+async function fetchCsvText() {
+  const urls = [CSV_URL, new URL(CSV_URL, document.baseURI || window.location.href).href];
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (res.ok) return await res.text();
+      lastErr = new Error(`Falha ao carregar CSV (${res.status}).`);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Não foi possível baixar o CSV.");
+}
+
+let csvImportBannerEl = null;
+
+function removeCsvImportBanner() {
+  if (csvImportBannerEl && csvImportBannerEl.parentNode) {
+    csvImportBannerEl.parentNode.removeChild(csvImportBannerEl);
+  }
+  csvImportBannerEl = null;
+}
+
+function showCsvImportBanner(message) {
+  removeCsvImportBanner();
+  const wrap = document.createElement("div");
+  wrap.className = "csv-import-banner";
+  wrap.setAttribute("role", "status");
+
+  const inner = document.createElement("div");
+  inner.className = "csv-import-banner__inner";
+
+  const p1 = document.createElement("p");
+  p1.className = "csv-import-banner__text";
+  p1.textContent = message;
+
+  const p2 = document.createElement("p");
+  p2.className = "csv-import-banner__hint";
+  p2.innerHTML =
+    "Ao abrir o <code>index.html</code> direto pelo Windows, o navegador costuma bloquear a leitura do CSV. " +
+    "Sirva a pasta <code>dashboard</code> com um servidor local (ex.: <code>npx serve .</code> nesta pasta) " +
+    "ou escolha o arquivo abaixo.";
+
+  const label = document.createElement("label");
+  label.className = "btn btn--primary csv-import-banner__file";
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".csv,text/csv";
+  input.hidden = true;
+  label.append("Escolher fatura_categorizada.csv", input);
+
+  input.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        applyDashboardFromCsvString(String(reader.result || ""));
+        removeCsvImportBanner();
+      } catch (err) {
+        renderLoadError(err?.message || "CSV inválido.");
+      }
+    };
+    reader.onerror = () => renderLoadError("Não foi possível ler o arquivo escolhido.");
+    reader.readAsText(file, "UTF-8");
+  });
+
+  inner.append(p1, p2, label);
+  wrap.appendChild(inner);
+  document.body.prepend(wrap);
+  csvImportBannerEl = wrap;
+}
+
+function applyDashboardFromCsvString(text) {
+  TRANSACOES = parseCsvText(text);
+  FATURAS_6_MESES = aggregateMonthlyTotals(TRANSACOES).slice(-6);
+  PARCELAS_MENSAL = deriveTimeline(FATURAS_6_MESES);
+  monthFilterKey = null;
+  activeCategory = null;
+  searchQuery = "";
+  if (els.searchInput) els.searchInput.value = "";
+  syncFilterUi();
+  renderTimeline();
+  updateKpis(getFilteredTransactions());
+  renderTable();
+  updateCharts();
+}
+
+async function loadCsvData() {
+  const text = await fetchCsvText();
+  return parseCsvText(text);
+}
 
 function isDarkTheme() {
   return document.documentElement.dataset.theme === "dark";
@@ -240,7 +449,7 @@ function updateKpis(rowsForKpi) {
   } else if (searchQuery.trim()) {
     els.kpiTotalHint.textContent = "Filtrado pela busca na tabela";
   } else {
-    els.kpiTotalHint.textContent = "Todos os lançamentos mockados";
+    els.kpiTotalHint.textContent = "Todos os lançamentos do CSV";
   }
 }
 
@@ -518,8 +727,6 @@ function buildLine() {
   }
 }
 
-let monthFilterKey = null;
-
 function filterTableByMonthKey(key) {
   if (monthFilterKey === key) monthFilterKey = null;
   else monthFilterKey = key;
@@ -636,6 +843,17 @@ function renderTimeline() {
   });
 }
 
+function renderLoadError(message) {
+  els.tableSubtitle.textContent = message;
+  els.tableBody.innerHTML = "";
+  els.timeline.innerHTML = `<div class="timeline__month"><span class="timeline__label">${message}</span><div></div><span class="timeline__value">—</span></div>`;
+  els.kpiTotal.textContent = "—";
+  els.kpiCount.textContent = "—";
+  els.kpiTicket.textContent = "—";
+  els.kpiParcelado.textContent = "—";
+  els.kpiTotalHint.textContent = "Falha ao carregar CSV";
+}
+
 function getStoredTheme() {
   try {
     const t = localStorage.getItem(THEME_KEY);
@@ -688,6 +906,10 @@ if (typeof DashboardAuth !== "undefined") {
     els.sessionUserLabel.textContent = u;
     els.sessionUserLabel.title = `Conectado como ${u}`;
   }
+  const usersLink = document.getElementById("usersAdminLink");
+  if (usersLink && DashboardAuth.isAdmin()) {
+    usersLink.hidden = false;
+  }
   if (els.logoutBtn) {
     els.logoutBtn.addEventListener("click", () => {
       DashboardAuth.logout();
@@ -700,6 +922,7 @@ els.searchInput.addEventListener("input", () => {
   searchQuery = els.searchInput.value;
   renderTable();
   updateKpis(getFilteredTransactions());
+  updateCharts();
 });
 
 document.addEventListener("keydown", (e) => {
@@ -708,8 +931,21 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-syncFilterUi();
-renderTimeline();
-updateKpis(getFilteredTransactions());
-renderTable();
-updateCharts();
+async function initDashboard() {
+  syncFilterUi();
+  try {
+    TRANSACOES = await loadCsvData();
+    FATURAS_6_MESES = aggregateMonthlyTotals(TRANSACOES).slice(-6);
+    PARCELAS_MENSAL = deriveTimeline(FATURAS_6_MESES);
+    renderTimeline();
+    updateKpis(getFilteredTransactions());
+    renderTable();
+    updateCharts();
+  } catch (err) {
+    const msg = err?.message || "Não foi possível carregar os dados.";
+    renderLoadError(msg);
+    showCsvImportBanner(msg);
+  }
+}
+
+initDashboard();

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Usuários — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("dashboard-theme");
+          if (t !== "dark" && t !== "light") t = "light";
+          document.documentElement.dataset.theme = t;
+          document.documentElement.style.colorScheme = t === "dark" ? "dark" : "light";
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <script src="auth.js"></script>
+    <script>
+      (function () {
+        if (typeof DashboardAuth === "undefined" || !DashboardAuth.isAuthenticated()) {
+          window.location.replace("login.html");
+        } else if (!DashboardAuth.isAdmin()) {
+          window.location.replace("index.html");
+        }
+      })();
+    </script>
+  </head>
+  <body class="theme-arara">
+    <div class="app-bg" aria-hidden="true"></div>
+    <div class="blobs" aria-hidden="true">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
+    </div>
+    <div class="noise" aria-hidden="true"></div>
+
+    <main class="users-main">
+      <header class="users-header">
+        <div>
+          <p class="eyebrow">Administração</p>
+          <h1 class="users-header__title">Controle de usuários</h1>
+          <p class="users-header__sub">Cadastre, altere o perfil, redefina senha ou remova acessos autorizados neste dispositivo.</p>
+        </div>
+        <a class="btn btn--soft" href="index.html">← Voltar ao dashboard</a>
+      </header>
+
+      <p class="users-msg" id="usersMsg" role="status" hidden></p>
+      <p class="users-msg users-msg--error" id="usersErr" role="alert" hidden></p>
+
+      <section class="card users-card">
+        <div class="card__head">
+          <h2>Novo usuário</h2>
+          <p class="card__sub">Senha mínima de 8 caracteres</p>
+        </div>
+        <form id="addUserForm" class="users-form">
+          <div class="users-form__row">
+            <div class="users-field">
+              <label class="auth-label" for="newUsername">Usuário</label>
+              <input id="newUsername" class="input" type="text" required minlength="3" maxlength="64" autocomplete="off" />
+            </div>
+            <div class="users-field">
+              <label class="auth-label" for="newPassword">Senha</label>
+              <input id="newPassword" class="input" type="password" required minlength="8" maxlength="128" autocomplete="new-password" />
+            </div>
+            <div class="users-field users-field--narrow">
+              <label class="auth-label" for="newRole">Perfil</label>
+              <select id="newRole" class="input">
+                <option value="user">Usuário</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <div class="users-field users-field--action">
+              <span class="auth-label" aria-hidden="true">&nbsp;</span>
+              <button type="submit" class="btn btn--primary">Adicionar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="card users-card">
+        <div class="card__head card__head--row">
+          <div>
+            <h2>Usuários cadastrados</h2>
+            <p class="card__sub" id="usersCountHint"></p>
+          </div>
+        </div>
+        <div class="table-scroll users-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Usuário</th>
+                <th scope="col">Perfil</th>
+                <th scope="col">Cadastro</th>
+                <th scope="col">Nova senha</th>
+                <th scope="col" class="users-col-actions">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footer users-footer-note">
+        <p>Alterações aplicam-se apenas neste navegador. Em ambiente real, gerencie usuários em um servidor seguro.</p>
+      </footer>
+    </main>
+
+    <script src="users.js"></script>
+  </body>
+</html>

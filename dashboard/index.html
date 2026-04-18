@@ -52,6 +52,7 @@
       <div class="header__actions">
         <div class="header__toolbar">
           <span class="session-pill" id="sessionUserLabel" title=""></span>
+          <a class="btn btn--soft" href="users.html" id="usersAdminLink" hidden>Usuários</a>
           <button type="button" class="btn btn--ghost" id="logoutBtn" aria-label="Sair da conta" title="Sair">
             Sair
           </button>
@@ -130,7 +131,7 @@
         <article class="card card--kpi kpi-item" style="--delay: 180ms">
           <p class="card__label">Parcelado no período</p>
           <p class="card__value" id="kpiParcelado">R$ 0,00</p>
-          <p class="card__hint">Soma das parcelas (mock)</p>
+          <p class="card__hint">Soma do movimento mensal exibido</p>
         </article>
       </section>
 
@@ -159,7 +160,7 @@
         <article class="card card--chart chart-rise" style="--delay: 340ms">
           <div class="card__head">
             <h2>Últimas 6 faturas</h2>
-            <p class="card__sub">Evolução mensal (valores mockados)</p>
+            <p class="card__sub">Evolução mensal baseada no CSV</p>
           </div>
           <div class="chart-wrap chart-wrap--line">
             <canvas id="chartLine" role="img" aria-label="Gráfico de linha das faturas"></canvas>
@@ -167,10 +168,10 @@
         </article>
         <article class="card card--chart chart-rise" style="--delay: 400ms">
           <div class="card__head">
-            <h2>Parcelas no tempo</h2>
-            <p class="card__sub">Linha do tempo mês a mês</p>
+            <h2>Movimento mensal</h2>
+            <p class="card__sub">Linha do tempo por mês do CSV</p>
           </div>
-          <div class="timeline" id="timeline" aria-label="Timeline de valores parcelados"></div>
+          <div class="timeline" id="timeline" aria-label="Timeline de valores mensais"></div>
         </article>
       </section>
 
@@ -178,7 +179,7 @@
         <div class="card__head card__head--row">
           <div>
             <h2>Transações</h2>
-            <p class="card__sub" id="tableSubtitle">20 lançamentos mockados</p>
+            <p class="card__sub" id="tableSubtitle">Carregando dados do CSV...</p>
           </div>
           <div class="table-tools">
             <label class="sr-only" for="searchInput">Buscar na tabela</label>
@@ -208,7 +209,7 @@
     </main>
 
     <footer class="footer">
-      <p>Dados ilustrativos para demonstração de UI. Integração com backend pode substituir os mocks sem alterar o layout.</p>
+      <p>Dados carregados de `fatura_categorizada.csv` diretamente no dashboard.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
