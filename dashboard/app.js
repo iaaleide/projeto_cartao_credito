@@ -110,6 +110,14 @@ function detectDelimiter(headerLine) {
   return semis > commas ? ";" : ",";
 }
 
+function normalizeWrappedCsvLine(line) {
+  const raw = String(line || "").trim();
+  const looksWrapped =
+    raw.startsWith('"') && raw.endsWith('"') && (raw.includes(',""') || raw.includes('"",'));
+  if (!looksWrapped) return raw;
+  return raw.slice(1, -1).replace(/""/g, '"');
+}
+
 function normHeaderCell(s) {
   return String(s)
     .replace(/^\uFEFF/, "")
@@ -196,6 +204,7 @@ function parseCsvText(text) {
 
   const rows = lines
     .slice(1)
+    .map((line) => normalizeWrappedCsvLine(line))
     .map((line) => splitCsvLine(line, delim))
     .map((cols) => ({
       data: parseDateFlexible(cols[idxData]),
