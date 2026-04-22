@@ -140,7 +140,8 @@ function parseDateFlexible(value) {
   const s = String(value).replace(/"/g, "").trim();
   if (!s) return null;
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  const [d, m, y] = s.split("/");
+  const normalized = s.replace(/\./g, "/").replace(/-/g, "/");
+  const [d, m, y] = normalized.split("/");
   if (!d || !m || !y) return null;
   return `${y.padStart(4, "0")}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
 }
@@ -148,6 +149,7 @@ function parseDateFlexible(value) {
 function parseMoneyBR(value) {
   let s = String(value).replace(/"/g, "").trim();
   if (!s) return 0;
+  s = s.replace(/[^\d,.\-]/g, "");
   if (s.includes(",") && s.includes(".")) {
     s = s.replace(/\./g, "").replace(",", ".");
   } else if (s.includes(",")) {
@@ -307,21 +309,34 @@ function showCsvImportBanner(message) {
   csvImportBannerEl = wrap;
 }
 
-function importCsvFile(file, options = {}) {
+function readFileAsText(file, encoding) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Não foi possível ler o arquivo escolhido."));
+    reader.readAsText(file, encoding);
+  });
+}
+
+async function importCsvFile(file, options = {}) {
   if (!file) return;
   const closeBannerOnSuccess = Boolean(options.closeBannerOnSuccess);
-  const reader = new FileReader();
-  reader.onload = () => {
+  const encodings = ["UTF-8", "ISO-8859-1", "windows-1252"];
+  let lastError = null;
+
+  for (const encoding of encodings) {
     try {
-      applyDashboardFromCsvString(String(reader.result || ""));
+      const text = await readFileAsText(file, encoding);
+      applyDashboardFromCsvString(text);
       if (closeBannerOnSuccess) removeCsvImportBanner();
       showCsvImportToast("CSV importado com sucesso.");
+      return;
     } catch (err) {
-      renderLoadError(err?.message || "CSV inválido.");
+      lastError = err;
     }
-  };
-  reader.onerror = () => renderLoadError("Não foi possível ler o arquivo escolhido.");
-  reader.readAsText(file, "UTF-8");
+  }
+
+  renderLoadError(lastError?.message || "CSV inválido.");
 }
 
 function applyDashboardFromCsvString(text) {
