@@ -1063,6 +1063,12 @@ html[data-theme="dark"] .auth-msg {
   display: none !important;
 }
 
+.auth-actions {
+  display: flex;
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
+}
+
 .auth-footnote {
   margin: 1.25rem 0 0;
   font-size: 0.76rem;

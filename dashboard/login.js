@@ -6,6 +6,8 @@
   const authTitle = el("authTitle");
   const authSubtitle = el("authSubtitle");
   const authError = el("authError");
+  const goLoginBtn = el("goLoginBtn");
+  const goRegisterBtn = el("goRegisterBtn");
 
   const regUser = el("regUser");
   const regPass = el("regPass");
@@ -22,6 +24,28 @@
     authError.hidden = !msg;
   }
 
+  function setMode(mode, hasRegisteredUser) {
+    const isRegister = mode === "register";
+    registerPanel.hidden = !isRegister;
+    loginPanel.hidden = isRegister;
+
+    if (isRegister) {
+      authTitle.textContent = "Cadastro inicial";
+      authSubtitle.textContent =
+        "Crie o primeiro acesso autorizado. Depois disso, novos cadastros por esta tela ficam desativados.";
+      goLoginBtn.hidden = false;
+      goRegisterBtn.hidden = true;
+      return;
+    }
+
+    authTitle.textContent = "Entrar";
+    authSubtitle.textContent = hasRegisteredUser
+      ? "Use o usuário e a senha cadastrados neste dispositivo. Administradores podem criar novos acessos em Usuários, no dashboard."
+      : "Ainda não existe usuário cadastrado. Clique em Cadastre-se para criar o primeiro acesso.";
+    goLoginBtn.hidden = true;
+    goRegisterBtn.hidden = hasRegisteredUser;
+  }
+
   function routePanels() {
     if (typeof DashboardAuth === "undefined") {
       showError("Erro ao carregar autenticação. Recarregue a página.");
@@ -32,19 +56,7 @@
       return;
     }
     const has = DashboardAuth.hasRegisteredUser();
-    if (has) {
-      registerPanel.hidden = true;
-      loginPanel.hidden = false;
-      authTitle.textContent = "Entrar";
-      authSubtitle.textContent =
-        "Use o usuário e a senha cadastrados neste dispositivo. Administradores podem criar novos acessos em Usuários, no dashboard.";
-    } else {
-      registerPanel.hidden = false;
-      loginPanel.hidden = true;
-      authTitle.textContent = "Cadastro inicial";
-      authSubtitle.textContent =
-        "Crie o primeiro acesso autorizado. Depois disso, novos cadastros por esta tela ficam desativados.";
-    }
+    setMode("login", has);
   }
 
   regForm.addEventListener("submit", async (e) => {
@@ -73,6 +85,13 @@
       showError(err.message || "Não foi possível entrar.");
     }
   });
+
+  if (goRegisterBtn) {
+    goRegisterBtn.addEventListener("click", () => setMode("register", false));
+  }
+  if (goLoginBtn) {
+    goLoginBtn.addEventListener("click", () => setMode("login", DashboardAuth.hasRegisteredUser()));
+  }
 
   routePanels();
 })();
