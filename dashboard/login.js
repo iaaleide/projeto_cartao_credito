@@ -30,9 +30,10 @@
     loginPanel.hidden = isRegister;
 
     if (isRegister) {
-      authTitle.textContent = "Cadastro inicial";
-      authSubtitle.textContent =
-        "Crie o primeiro acesso autorizado. Depois disso, novos cadastros por esta tela ficam desativados.";
+      authTitle.textContent = "Cadastre-se";
+      authSubtitle.textContent = hasRegisteredUser
+        ? "O cadastro inicial já foi concluído. Se você não tiver acesso, solicite a um administrador a criação do seu usuário em Usuários no dashboard."
+        : "Crie o primeiro acesso autorizado. Depois disso, novos cadastros por esta tela ficam desativados.";
       goLoginBtn.hidden = false;
       goRegisterBtn.hidden = true;
       return;
@@ -43,7 +44,7 @@
       ? "Use o usuário e a senha cadastrados neste dispositivo. Administradores podem criar novos acessos em Usuários, no dashboard."
       : "Ainda não existe usuário cadastrado. Clique em Cadastre-se para criar o primeiro acesso.";
     goLoginBtn.hidden = true;
-    goRegisterBtn.hidden = hasRegisteredUser;
+    goRegisterBtn.hidden = false;
   }
 
   function routePanels() {
@@ -87,7 +88,7 @@
   });
 
   if (goRegisterBtn) {
-    goRegisterBtn.addEventListener("click", () => setMode("register", false));
+    goRegisterBtn.addEventListener("click", () => setMode("register", DashboardAuth.hasRegisteredUser()));
   }
   if (goLoginBtn) {
     goLoginBtn.addEventListener("click", () => setMode("login", DashboardAuth.hasRegisteredUser()));

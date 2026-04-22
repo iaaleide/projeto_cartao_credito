@@ -65,6 +65,7 @@ const els = {
   tableSubtitle: document.getElementById("tableSubtitle"),
   searchInput: document.getElementById("searchInput"),
   timeline: document.getElementById("timeline"),
+  csvFileInput: document.getElementById("csvFileInput"),
 };
 
 const CHART_FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
@@ -266,23 +267,29 @@ function showCsvImportBanner(message) {
   input.addEventListener("change", () => {
     const file = input.files && input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        applyDashboardFromCsvString(String(reader.result || ""));
-        removeCsvImportBanner();
-      } catch (err) {
-        renderLoadError(err?.message || "CSV inválido.");
-      }
-    };
-    reader.onerror = () => renderLoadError("Não foi possível ler o arquivo escolhido.");
-    reader.readAsText(file, "UTF-8");
+    importCsvFile(file, { closeBannerOnSuccess: true });
   });
 
   inner.append(p1, p2, label);
   wrap.appendChild(inner);
   document.body.prepend(wrap);
   csvImportBannerEl = wrap;
+}
+
+function importCsvFile(file, options = {}) {
+  if (!file) return;
+  const closeBannerOnSuccess = Boolean(options.closeBannerOnSuccess);
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      applyDashboardFromCsvString(String(reader.result || ""));
+      if (closeBannerOnSuccess) removeCsvImportBanner();
+    } catch (err) {
+      renderLoadError(err?.message || "CSV inválido.");
+    }
+  };
+  reader.onerror = () => renderLoadError("Não foi possível ler o arquivo escolhido.");
+  reader.readAsText(file, "UTF-8");
 }
 
 function applyDashboardFromCsvString(text) {
@@ -924,6 +931,14 @@ els.searchInput.addEventListener("input", () => {
   updateKpis(getFilteredTransactions());
   updateCharts();
 });
+
+if (els.csvFileInput) {
+  els.csvFileInput.addEventListener("change", () => {
+    const file = els.csvFileInput.files && els.csvFileInput.files[0];
+    importCsvFile(file);
+    els.csvFileInput.value = "";
+  });
+}
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
