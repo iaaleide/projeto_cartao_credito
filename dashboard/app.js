@@ -228,12 +228,34 @@ async function fetchCsvText() {
 }
 
 let csvImportBannerEl = null;
+let csvImportToastEl = null;
+let csvImportToastTimer = null;
 
 function removeCsvImportBanner() {
   if (csvImportBannerEl && csvImportBannerEl.parentNode) {
     csvImportBannerEl.parentNode.removeChild(csvImportBannerEl);
   }
   csvImportBannerEl = null;
+}
+
+function showCsvImportToast(message) {
+  if (csvImportToastTimer) {
+    clearTimeout(csvImportToastTimer);
+    csvImportToastTimer = null;
+  }
+  if (!csvImportToastEl) {
+    csvImportToastEl = document.createElement("div");
+    csvImportToastEl.className = "csv-import-toast";
+    csvImportToastEl.setAttribute("role", "status");
+    csvImportToastEl.setAttribute("aria-live", "polite");
+    document.body.appendChild(csvImportToastEl);
+  }
+  csvImportToastEl.textContent = message;
+  csvImportToastEl.classList.add("is-visible");
+  csvImportToastTimer = setTimeout(() => {
+    if (!csvImportToastEl) return;
+    csvImportToastEl.classList.remove("is-visible");
+  }, 2500);
 }
 
 function showCsvImportBanner(message) {
@@ -284,6 +306,7 @@ function importCsvFile(file, options = {}) {
     try {
       applyDashboardFromCsvString(String(reader.result || ""));
       if (closeBannerOnSuccess) removeCsvImportBanner();
+      showCsvImportToast("CSV importado com sucesso.");
     } catch (err) {
       renderLoadError(err?.message || "CSV inválido.");
     }
